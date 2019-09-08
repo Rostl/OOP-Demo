@@ -1,0 +1,162 @@
+DROP TABLE artist_storage.artist;
+
+CREATE SCHEMA artist_storage;
+
+SET SEARCH_PATH = booking;
+
+
+CREATE TABLE artist_storage.artist
+(
+    id   SERIAL PRIMARY KEY,
+    name CHARACTER VARYING(128) UNIQUE NOT NULL,
+    age  INTEGER
+);
+
+INSERT INTO artist_storage.artist (name, age)
+VALUES ('Turbo', 18),
+       ('Yan', 20),
+       ('Vitaliy', 45),
+       ('Denis', 15);
+
+INSERT INTO artist(name, age)
+VALUES ('Andrew', 45);
+
+SELECT name as n, age as a
+FROM artist
+ORDER BY name DESC;
+
+SELECT name AS n,
+       age  AS a
+FROM artist
+WHERE age < 28
+   OR age >= 40;
+
+SELECT name as n, age as a
+FROM artist
+ORDER BY age ASC;
+
+SELECT name AS n, age AS a
+FROM artist
+WHERE age IN (18, 25, 45)
+ORDER BY a;
+
+SELECT name AS n, age AS a
+FROM artist
+WHERE UPPER(name) LIKE UPPER('%i%')
+ORDER BY a;
+
+SELECT count(id)
+FROM artist;
+
+SELECT AVG(age)
+from artist;
+
+SELECT name, age
+FROM artist
+WHERE age > 20
+ORDER BY age
+LIMIT 2
+    OFFSET 2;
+
+(SELECT name, age
+ FROM artist
+ ORDER BY age
+ LIMIT 1)
+UNION ALL
+(SELECT name, age
+ FROM artist
+ ORDER BY age DESC
+ LIMIT 1);
+
+DELETE
+FROM artist
+WHERE age IS NULL;
+-- RETURNING *;
+
+SELECT *
+FROM artist;
+UPDATE artist
+SET age = 31
+WHERE name = 'Dimon';
+
+SELECT id, name, age
+FROM artist
+WHERE age = (SELECT max(age)
+             FROM artist)
+UNION ALL
+SELECT id, name, age
+FROM artist
+WHERE age = (SELECT min(age)
+             FROM artist);
+
+SELECT id, name, age
+FROM (SELECT id, name, age FROM artist) t
+WHERE age = 45;
+
+CREATE TABLE coutry
+(
+    id         SERIAL PRIMARY KEY,
+    name       CHARACTER VARYING(256) UNIQUE NOT NULL,
+    population integer,
+    area       integer,
+    language   CHARACTER VARYING(64)
+);
+
+------------------------------------------------------------------------------
+
+INSERT INTO coutry (name, population, area, language)
+VALUES ('Беларусь', 9, 205, 'ru'),
+       ('Россия', 140, 9000, 'ru'),
+       ('Франция', 50, 501, 'fr'),
+       ('Германия', 9, 205, 'de'),
+       ('Украина', 80, 895, 'ua'),
+       ('Великобритания', 100, 423, 'en'),
+       ('Австралия', 230, 5000, 'en'),
+       ('Канада', 140, 7240, 'en'),
+       ('Китай', 1500, 8222, 'ch');
+
+SELECT *
+FROM coutry;
+
+SELECT *
+FROM coutry
+WHERE population < 50;
+
+SELECT *
+FROM coutry
+ORDER BY area ASC;
+
+SELECT sum(t.population)
+FROM (SELECT *
+      FROM coutry
+      ORDER BY area
+      LIMIT 5) t;
+
+UPDATE coutry
+SET language = 'by'
+WHERE UPPER(name) = UPPER('Беларусь');
+
+SELECT *
+FROM coutry;
+
+DELETE
+FROM coutry
+WHERE population = (SELECT max(population) FROM coutry);
+
+----------------------------------------------------------------------
+
+CREATE SCHEMA booking;
+
+CREATE TABLE author
+(
+    id         BIGSERIAL PRIMARY KEY,
+    first_name CHARACTER VARYING(256) NOT NULL,
+    last_name  CHARACTER VARYING(256) NOT NULL,
+    country_id INTEGER REFERENCES couttries.coutry (id)
+);
+
+SELECT *
+FROM author;
+
+INSERT INTO author(first_name, last_name, country_id)
+VALUES ('Алесандр', 'Пушкин', (SELECT id FROM couttries.coutry WHERE name = 'Россия'))
